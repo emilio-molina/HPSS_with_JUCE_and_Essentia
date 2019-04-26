@@ -1,12 +1,12 @@
 /*
-  ==============================================================================
+ ==============================================================================
 
-    This file was auto-generated!
+ This file was auto-generated!
 
-    It contains the basic startup code for a JUCE application.
+ It contains the basic startup code for a JUCE application.
 
-  ==============================================================================
-*/
+ ==============================================================================
+ */
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MainComponent.h"
@@ -54,26 +54,26 @@ public:
 
     //==============================================================================
     /*
-        This class implements the desktop window that contains an instance of
-        our MainComponent class.
-    */
+     This class implements the desktop window that contains an instance of
+     our MainComponent class.
+     */
     class MainWindow    : public DocumentWindow
     {
     public:
         MainWindow (String name)  : DocumentWindow (name,
                                                     Desktop::getInstance().getDefaultLookAndFeel()
-                                                                          .findColour (ResizableWindow::backgroundColourId),
+                                                    .findColour (ResizableWindow::backgroundColourId),
                                                     DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
             setContentOwned (new MainComponent(), true);
 
-           #if JUCE_IOS || JUCE_ANDROID
+#if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
-           #else
+#else
             setResizable (true, true);
             centreWithSize (getWidth(), getHeight());
-           #endif
+#endif
 
             setVisible (true);
         }
@@ -87,11 +87,11 @@ public:
         }
 
         /* Note: Be careful if you override any DocumentWindow methods - the base
-           class uses a lot of them, so by overriding you might break its functionality.
-           It's best to do all your work in your content component instead, but if
-           you really have to override any DocumentWindow methods, make sure your
-           subclass also calls the superclass's method.
-        */
+         class uses a lot of them, so by overriding you might break its functionality.
+         It's best to do all your work in your content component instead, but if
+         you really have to override any DocumentWindow methods, make sure your
+         subclass also calls the superclass's method.
+         */
 
     private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
