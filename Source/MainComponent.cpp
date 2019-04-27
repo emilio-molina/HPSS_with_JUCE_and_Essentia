@@ -13,7 +13,7 @@ MainComponent::MainComponent()
 {
     // Make sure you set the size of the component after
     // you add any child components.
-    setSize (1000, 800);
+    setSize (800, 600);
 
     // Some platforms require permissions to open input channels so request that here
     if (RuntimePermissions::isRequired (RuntimePermissions::recordAudio)
@@ -28,6 +28,10 @@ MainComponent::MainComponent()
         setAudioChannels (2, 2);
     }
     addAndMakeVisible(_filesBrowser);
+    std::function<void(int)> f = [=](int rowId) {
+        this->selectRow(rowId);
+    };
+    _filesBrowser.setSelectedRowsChangedCallback(f);
     _selectFolder();
 }
 
