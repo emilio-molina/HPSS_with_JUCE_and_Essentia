@@ -9,12 +9,16 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
-
+#include "Utils.h"
+#include "SimpleList.h"
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
  your controls and content.
  */
+
+
+
 class MainComponent   : public AudioAppComponent
 {
 public:
@@ -30,12 +34,14 @@ public:
     //==============================================================================
     void paint (Graphics& g) override;
     void resized() override;
+    
+    void selectRow(int rowId);
 
 private:
-    //==============================================================================
-    // Your private member variables go here...
-
-
+    SimpleList _filesBrowser;
+    Array<File> _files;
+    AudioFormatManager _formatManager;
+    void _selectFolder();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
 

@@ -16,3 +16,6 @@ void readAudioFile(File& inputAudioFile, AudioSampleBuffer& buffer);
 void writeAudioFile(AudioSampleBuffer& buffer,
                     int sampleRate,
                     String& outputAudioPath);
+
+bool isReadableAudioFile(const File& inputFile,
+                         AudioFormatManager &formatManager);

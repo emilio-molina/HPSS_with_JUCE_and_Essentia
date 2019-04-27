@@ -13,7 +13,7 @@ MainComponent::MainComponent()
 {
     // Make sure you set the size of the component after
     // you add any child components.
-    setSize (800, 600);
+    setSize (1000, 800);
 
     // Some platforms require permissions to open input channels so request that here
     if (RuntimePermissions::isRequired (RuntimePermissions::recordAudio)
@@ -27,6 +27,8 @@ MainComponent::MainComponent()
         // Specify the number of input and output channels that we want to open
         setAudioChannels (2, 2);
     }
+    addAndMakeVisible(_filesBrowser);
+    _selectFolder();
 }
 
 MainComponent::~MainComponent()
@@ -77,7 +79,36 @@ void MainComponent::paint (Graphics& g)
 
 void MainComponent::resized()
 {
-    // This is called when the MainContentComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
+    float percentage_x = (float)getWidth() / 100.0f;
+    float percentage_y = (float)getHeight() / 100.0f;
+    _filesBrowser.setBounds(percentage_x * 1, percentage_y * 1,
+                          percentage_x * 99, percentage_y * 15);
+}
+
+void MainComponent::_selectFolder() {
+    FileChooser fc ("Choose a directory",
+                    File::getCurrentWorkingDirectory(),
+                    "*.",
+                    true);
+    if (fc.browseForDirectory())
+    {
+        File chosenDirectory = fc.getResult();
+        String fullDirectoryPath = chosenDirectory.getFullPathName().toStdString();
+        DirectoryIterator iter (File(fullDirectoryPath), true);
+        _files.clear();
+        _formatManager.registerBasicFormats();
+        while (iter.next()) {
+            if (isReadableAudioFile(iter.getFile(),
+                                    _formatManager)) {
+                _files.add(iter.getFile());
+                _filesBrowser.addItem(iter.getFile().getFullPathName());
+            }
+        }
+    } else{
+        JUCEApplication::quit();
+    }
+}
+
+void MainComponent::selectRow(int rowId) {
+    juce::Logger::writeToLog(String(rowId));
 }
