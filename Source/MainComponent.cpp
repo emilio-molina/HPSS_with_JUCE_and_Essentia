@@ -123,7 +123,7 @@ void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
     std::vector<std::vector<float>> signal_L_and_R;
     for (int channel=0; channel<2; channel++) {
         _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
-                                                          0);
+                                                          channel);
         _essentiaAudioProcessor.process();
         std::vector<float> signalChannel;
         _essentiaAudioProcessor.getSynthesizedSamples(signalChannel);
@@ -141,7 +141,7 @@ void MainComponent::selectRow(int rowId) {
                       _currentAudioSampleBuffer,
                       _formatManager);
     _position = 0;
+    _processCurrentBuffer(_currentAudioSampleBuffer);
     _playing = true;
     _mutex.unlock();
-    _processCurrentBuffer(_currentAudioSampleBuffer);
 }

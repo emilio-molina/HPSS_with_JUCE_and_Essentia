@@ -29,7 +29,6 @@ class EssentiaAudioProcessor {
     std::vector<std::complex<float>> _fft, _stftFrame;
     std::vector<std::vector<std::complex<float>>> _stft;
     std::vector<float> _flux;
-    float _attackStart, _attackStop;
     int _frameSize, _hopSize;
 public:
     EssentiaAudioProcessor();

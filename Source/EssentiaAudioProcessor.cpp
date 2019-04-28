@@ -63,6 +63,7 @@ void EssentiaAudioProcessor::readSignalFromInputBuffer(AudioSampleBuffer &inputB
     }
 }
 
+
 void EssentiaAudioProcessor::process() {
     _frameCutterAlgorithm->reset();
     _stft.clear();
@@ -75,8 +76,6 @@ void EssentiaAudioProcessor::process() {
             break;
         }
         num_frames++;
-        if (essentia::isSilent(_frame))
-            continue;
         _windowAlgorithm->compute();
         _fftAlgorithm->compute();
         _stft.push_back(_fft);
@@ -87,6 +86,8 @@ void EssentiaAudioProcessor::process() {
 
 void EssentiaAudioProcessor::computeISTFT(std::vector<std::vector<std::complex<float>>> stft) {
     _synthesizedSamples.clear();
+    _synthesizedFrameOLA.clear();
+    _overlapAddAlgorithm->reset();
     for (int i=0; i<stft.size(); i++) {
         _stftFrame = stft[i];
         _ifftAlgorithm->compute();

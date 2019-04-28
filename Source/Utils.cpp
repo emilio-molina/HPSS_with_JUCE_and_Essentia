@@ -41,9 +41,12 @@ void vectorToBuffer(std::vector<float> &inputL,
                     AudioSampleBuffer &output) {
     output.clear();
     int numChannels = 2;
-    output.setSize (numChannels, (int)inputL.size());
-    output.copyFrom(0, 0, &inputL[0], (int)inputL.size());
-    output.copyFrom(1, 0, &inputR[0], (int)inputR.size());
+    int numSamples = (int)inputL.size();
+    output.setSize (numChannels, numSamples);
+    if (numSamples > 0) {
+        output.copyFrom(0, 0, &inputL[0], (int)inputL.size());
+        output.copyFrom(1, 0, &inputR[0], (int)inputR.size());
+    }
 }
 
 void medianfilter(float* signal, float* result, int N) {
