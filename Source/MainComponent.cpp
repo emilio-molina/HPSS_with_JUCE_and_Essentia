@@ -9,7 +9,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent() : _playing(false)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -33,6 +33,8 @@ MainComponent::MainComponent()
     };
     _filesBrowser.setSelectedRowsChangedCallback(f);
     _selectFolder();
+    setAudioChannels(0, 2);
+    _position = 0;
 }
 
 MainComponent::~MainComponent()
@@ -55,13 +57,30 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-    // Your audio-processing code goes here!
-
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
-
-    // Right now we are not producing any data, in which case we need to clear the buffer
-    // (to prevent the output of random noise)
     bufferToFill.clearActiveBufferRegion();
+    if (!_playing)
+        return;
+    if (!_mutex.try_lock())
+        return;
+    auto numFileChannels = _currentAudioSampleBuffer.getNumChannels();
+    auto numOutputChannels = bufferToFill.buffer->getNumChannels();
+    auto outputSamplesRemaining = bufferToFill.numSamples;
+    auto outputSamplesOffset = bufferToFill.startSample;
+    auto bufferSamplesRemaining = _currentAudioSampleBuffer.getNumSamples() - _position;
+    auto samplesThisTime = jmin (outputSamplesRemaining, bufferSamplesRemaining);
+    for (auto channel = 0; channel < numOutputChannels; ++channel)
+    {
+        bufferToFill.buffer->copyFrom (channel,
+                                       outputSamplesOffset,
+                                       _currentAudioSampleBuffer,
+                                       channel % numFileChannels,
+                                       _position,
+                                       samplesThisTime);
+    }
+    _position += samplesThisTime;
+    if (_position == _currentAudioSampleBuffer.getNumSamples())
+        _playing = false;
+    _mutex.unlock();
 }
 
 void MainComponent::releaseResources()
@@ -114,5 +133,12 @@ void MainComponent::_selectFolder() {
 }
 
 void MainComponent::selectRow(int rowId) {
-    juce::Logger::writeToLog(String(rowId));
+    juce::Logger::writeToLog(_files[rowId].getFullPathName());
+    _mutex.lock();
+    readFromAudioFile(_files[rowId],
+                      _currentAudioSampleBuffer,
+                      _formatManager);
+    _position = 0;
+    _playing = true;
+    _mutex.unlock();
 }

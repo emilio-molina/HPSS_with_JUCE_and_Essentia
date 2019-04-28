@@ -11,9 +11,11 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 
-void readAudioFile(File& inputAudioFile, AudioSampleBuffer& buffer);
+void readFromAudioFile(const File& inputAudioFile,
+                       AudioSampleBuffer& buffer,
+                       AudioFormatManager& formatManager);
 
-void writeAudioFile(AudioSampleBuffer& buffer,
+void writeToAudioFile(AudioSampleBuffer& buffer,
                     int sampleRate,
                     String& outputAudioPath);
 

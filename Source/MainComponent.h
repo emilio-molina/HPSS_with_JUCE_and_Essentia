@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Utils.h"
 #include "SimpleList.h"
+#include <mutex>
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -38,9 +39,13 @@ public:
     void selectRow(int rowId);
 
 private:
+    std::mutex _mutex;
+    bool _playing;
+    int _position;
     SimpleList _filesBrowser;
     Array<File> _files;
     AudioFormatManager _formatManager;
+    AudioSampleBuffer _currentAudioSampleBuffer;
     void _selectFolder();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
