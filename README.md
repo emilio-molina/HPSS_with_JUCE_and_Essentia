@@ -14,7 +14,7 @@ $ git submodule update
 In my case, the only dependency use is `fftw` (because I was able to easily install it with `brew`).
 ```
 $ cd third_party/essentia
-$ ./waf configure --lightweight=fftw --build-static --ignore-algos=Spline,CubicSpline
-$ #./waf configure --lightweight= --fft=KISS --ignore-algos=Spline,CubicSpline --with-static-examples  # if fftw not installed, KISSfft can be used instead
+$ ./waf configure --lightweight=fftw --build-static --ignore-algos=Spline,CubicSpline --static-dependencies
+$ #./waf configure --lightweight= --fft=KISS --ignore-algos=Spline,CubicSpline --static-dependencies  # if fftw not installed, KISSfft can be used instead
 $./waf
 ```

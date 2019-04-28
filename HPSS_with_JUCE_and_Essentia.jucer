@@ -7,10 +7,10 @@
       <FILE id="XP8Yt0" name="SimpleList.h" compile="0" resource="0" file="Source/SimpleList.h"/>
       <FILE id="v7figp" name="Utils.cpp" compile="1" resource="0" file="Source/Utils.cpp"/>
       <FILE id="exfeQ1" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
-      <FILE id="C3dKBf" name="AudioProcessor.cpp" compile="1" resource="0"
-            file="Source/AudioProcessor.cpp"/>
-      <FILE id="jBz4e6" name="AudioProcessor.h" compile="0" resource="0"
-            file="Source/AudioProcessor.h"/>
+      <FILE id="C3dKBf" name="EssentiaAudioProcessor.cpp" compile="1" resource="0"
+            file="Source/EssentiaAudioProcessor.cpp"/>
+      <FILE id="jBz4e6" name="EssentiaAudioProcessor.h" compile="0" resource="0"
+            file="Source/EssentiaAudioProcessor.h"/>
       <FILE id="faFTJj" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="VnRV9Y" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>

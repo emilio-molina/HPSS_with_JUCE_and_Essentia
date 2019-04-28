@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Utils.h"
 #include "SimpleList.h"
+#include "EssentiaAudioProcessor.h"
 #include <mutex>
 //==============================================================================
 /*
@@ -37,7 +38,6 @@ public:
     void resized() override;
     
     void selectRow(int rowId);
-
 private:
     std::mutex _mutex;
     bool _playing;
@@ -46,7 +46,9 @@ private:
     Array<File> _files;
     AudioFormatManager _formatManager;
     AudioSampleBuffer _currentAudioSampleBuffer;
+    EssentiaAudioProcessor _essentiaAudioProcessor;
     void _selectFolder();
+    void _processCurrentBuffer();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
 

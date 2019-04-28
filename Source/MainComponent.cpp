@@ -14,26 +14,13 @@ MainComponent::MainComponent() : _playing(false)
     // Make sure you set the size of the component after
     // you add any child components.
     setSize (800, 600);
-
-    // Some platforms require permissions to open input channels so request that here
-    if (RuntimePermissions::isRequired (RuntimePermissions::recordAudio)
-        && ! RuntimePermissions::isGranted (RuntimePermissions::recordAudio))
-    {
-        RuntimePermissions::request (RuntimePermissions::recordAudio,
-                                     [&] (bool granted) { if (granted)  setAudioChannels (2, 2); });
-    }
-    else
-    {
-        // Specify the number of input and output channels that we want to open
-        setAudioChannels (2, 2);
-    }
+    setAudioChannels(0, 2);
     addAndMakeVisible(_filesBrowser);
     std::function<void(int)> f = [=](int rowId) {
         this->selectRow(rowId);
     };
     _filesBrowser.setSelectedRowsChangedCallback(f);
     _selectFolder();
-    setAudioChannels(0, 2);
     _position = 0;
 }
 
@@ -132,6 +119,12 @@ void MainComponent::_selectFolder() {
     }
 }
 
+void MainComponent::_processCurrentBuffer() {
+    _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
+                                                      0);
+    _essentiaAudioProcessor.process();
+}
+
 void MainComponent::selectRow(int rowId) {
     juce::Logger::writeToLog(_files[rowId].getFullPathName());
     _mutex.lock();
@@ -141,4 +134,5 @@ void MainComponent::selectRow(int rowId) {
     _position = 0;
     _playing = true;
     _mutex.unlock();
+    _processCurrentBuffer();
 }
