@@ -9,6 +9,7 @@
 */
 
 #include "EssentiaAudioProcessor.h"
+#include "Utils.h"
 
 EssentiaAudioProcessor::EssentiaAudioProcessor() {
     essentia::init();
@@ -99,8 +100,7 @@ void EssentiaAudioProcessor::computeISTFT(std::vector<std::vector<std::complex<f
     }
 }
 
-void EssentiaAudioProcessor::getSynthesizedSamples(AudioSampleBuffer &output) {
-    output.clear();
-    output.setSize (1, (int)_synthesizedSamples.size());
-    output.copyFrom(0, 0, &_synthesizedSamples[0], (int)_synthesizedSamples.size());
+
+void EssentiaAudioProcessor::getSynthesizedSamples(std::vector<float> &synthesizedSamples) {
+    synthesizedSamples = _synthesizedSamples;
 }

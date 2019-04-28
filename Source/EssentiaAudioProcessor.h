@@ -38,5 +38,5 @@ public:
                                    int channel);
     void process();
     void computeISTFT(std::vector<std::vector<std::complex<float>>> stft);
-    void getSynthesizedSamples(AudioSampleBuffer &output);
+    void getSynthesizedSamples(std::vector<float> &output);
 };

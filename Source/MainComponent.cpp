@@ -119,10 +119,19 @@ void MainComponent::_selectFolder() {
     }
 }
 
-void MainComponent::_processCurrentBuffer() {
-    _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
-                                                      0);
-    _essentiaAudioProcessor.process();
+void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
+    std::vector<std::vector<float>> signal_L_and_R;
+    for (int channel=0; channel<2; channel++) {
+        _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
+                                                          0);
+        _essentiaAudioProcessor.process();
+        std::vector<float> signalChannel;
+        _essentiaAudioProcessor.getSynthesizedSamples(signalChannel);
+        signal_L_and_R.push_back(signalChannel);
+    }
+    vectorToBuffer(signal_L_and_R[0],
+                   signal_L_and_R[1],
+                   outBuffer);
 }
 
 void MainComponent::selectRow(int rowId) {
@@ -134,5 +143,5 @@ void MainComponent::selectRow(int rowId) {
     _position = 0;
     _playing = true;
     _mutex.unlock();
-    _processCurrentBuffer();
+    _processCurrentBuffer(_currentAudioSampleBuffer);
 }

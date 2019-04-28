@@ -48,7 +48,7 @@ private:
     AudioSampleBuffer _currentAudioSampleBuffer;
     EssentiaAudioProcessor _essentiaAudioProcessor;
     void _selectFolder();
-    void _processCurrentBuffer();
+    void _processCurrentBuffer(AudioSampleBuffer &outBuffer);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
 
