@@ -4,6 +4,7 @@
               jucerVersion="5.4.3">
   <MAINGROUP id="IAeTyq" name="HPSS_with_JUCE_and_Essentia">
     <GROUP id="{C9AC82F7-954F-B9AD-C33D-74A39ABF3E0F}" name="Source">
+      <FILE id="lyTSjd" name="Mediator.h" compile="0" resource="0" file="Source/Mediator.h"/>
       <FILE id="XP8Yt0" name="SimpleList.h" compile="0" resource="0" file="Source/SimpleList.h"/>
       <FILE id="v7figp" name="Utils.cpp" compile="1" resource="0" file="Source/Utils.cpp"/>
       <FILE id="exfeQ1" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>

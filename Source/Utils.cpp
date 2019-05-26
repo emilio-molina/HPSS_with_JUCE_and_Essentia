@@ -11,12 +11,13 @@
 #include "Utils.h"
 
 bool isReadableAudioFile(const File& inputFile,
-                         AudioFormatManager& formatManager) {
+                         AudioFormatManager& formatManager) {
     auto* reader = formatManager.createReaderFor (inputFile);
     bool isValid = (reader != nullptr);
     delete reader;
     return isValid;
 }
+
 
 void readFromAudioFile(const File& inputAudioFile,
                        AudioSampleBuffer& buffer,
@@ -36,6 +37,7 @@ void readFromAudioFile(const File& inputAudioFile,
     }
 }
 
+
 void vectorToBuffer(std::vector<float> &inputL,
                     std::vector<float> &inputR,
                     AudioSampleBuffer &output) {
@@ -49,28 +51,129 @@ void vectorToBuffer(std::vector<float> &inputL,
     }
 }
 
-void medianfilter(float* signal, float* result, int N) {
-    //   Move window through all elements of the signal
-    for (int i = 2; i < N - 2; ++i)
+
+
+void medianFilter( float* array, int n, int filterSize )
+{
+    Mediator<float> mediator( filterSize );
+    for (int i = 0; i < filterSize/2; i++)
     {
-        //   Pick up window elements
-        float window[5];
-        for (int j = 0; j < 5; ++j)
-            window[j] = signal[i - 2 + j];
-        //   Order elements (only half of them)
-        for (int j = 0; j < 3; ++j)
-        {
-            //   Find position of minimum element
-            int min = j;
-            for (int k = j + 1; k < 5; ++k)
-                if (window[k] < window[min])
-                    min = k;
-            //   Put found minimum element in its place
-            const float temp = window[j];
-            window[j] = window[min];
-            window[min] = temp;
+        mediator.insert( array[0] );
+        array[i] = mediator.getMedian();
+    }
+    int offset = filterSize/2 + (filterSize % 2);
+    for (int i = 0; i < offset; i++)
+    {
+        mediator.insert( array[i] );
+    }
+    for (int i = 0; i < n - offset; i++)
+    {
+        array[i] = mediator.getMedian();
+        mediator.insert( array[i + offset] );
+    }
+    for (int i = n - offset; i < n; i++)
+    {
+        array[i] = mediator.getMedian();
+        mediator.insert( array[n - 1] );
+    }
+}
+
+
+template<typename T>
+std::vector<T> slice(std::vector<T> const &v, int m, int n)
+{
+    auto first = v.cbegin() + m;
+    auto last = v.cbegin() + n + 1;
+    
+    std::vector<T> vec(first, last);
+    return vec;
+}
+
+
+void medianfilterSymmetric(std::vector<float>& input,
+                           std::vector<float>& output,
+                           int wsize) {
+    int N = (int)input.size();
+    output.clear();
+    output.reserve(N + wsize * 2);
+    for (int i=wsize; i>=0; i--) {
+        output.push_back(input[i]);
+    }
+    for (int i=0; i<N; i++) {
+        output.push_back(input[i]);
+    }
+    for (int i=N - 1; i>=(N - wsize + 1); i--) {
+        output.push_back(input[i]);
+    }
+    medianFilter(&output[0], N, wsize);
+    output = slice(output,
+                   wsize + 1,
+                   N - wsize);
+}
+
+
+void horizontalMedianFiltering(std::vector<std::vector<float>> &input,
+                               std::vector<std::vector<float>> &output,
+                               int N) {
+    output.clear();
+    for (auto &row: input) {
+        std::vector<float> outputRow;
+        medianfilterSymmetric(row,
+                              outputRow,
+                              N);
+        output.push_back(outputRow);
+    }
+}
+
+void transpose(std::vector<std::vector<float> > &b)
+{
+    std::vector<std::vector<float> > trans_vec(b[0].size(), std::vector<float>());
+    for (int i = 0; i < b.size(); i++)
+        for (int j = 0; j < b[i].size(); j++)
+            trans_vec[j].push_back(b[i][j]);
+    b = trans_vec;
+}
+
+void verticalMedianFiltering(std::vector<std::vector<float>> input,
+                             std::vector<std::vector<float>> &output,
+                             int N) {
+    transpose(input);
+    output.clear();
+    for (auto &row: input) {
+        std::vector<float> outputRow;
+        medianfilterSymmetric(row,
+                              outputRow,
+                              N);
+        output.push_back(outputRow);
+    }
+    transpose(output);
+}
+
+void my_soft_mask(std::vector<std::vector<float>> &X,
+                  std::vector<std::vector<float>> &X_ref,
+                  std::vector<std::vector<float>> &mask,
+                  float power=1.0f,
+                  bool split_zeros=false) {
+    mask.resize(X.size());
+    for (auto &row: mask)
+        row.resize(X[0].size());
+    float x, xref, z, m, rm;
+    for (int i=0; i<X.size(); i++) {
+        for (int j=0; j<X[i].size(); j++) {
+            x = X[i][j];
+            xref = X_ref[i][j];
+            z = std::max(x, xref);
+            if (z < 1e-8) {
+                if (split_zeros)
+                    m = 0.5f;
+                else
+                    m = 0.0f;
+            } else {
+                m = std::pow((x / z), power);
+                rm = std::pow((xref / z), power);
+                m = m / (m + rm);
+            }
+            mask[i][j] = m;
         }
-        //   Get result - the middle element
-        result[i - 2] = window[2];
     }
 }
