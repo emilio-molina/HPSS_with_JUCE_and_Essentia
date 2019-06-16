@@ -37,6 +37,24 @@ void readFromAudioFile(const File& inputAudioFile,
     }
 }
 
+void writeToAudioFile(AudioSampleBuffer& buffer,
+                      int sampleRate,
+                      String outputAudioPath) {
+    if (File(outputAudioPath).exists()) {
+        remove(outputAudioPath.toRawUTF8());
+    }
+    WavAudioFormat format;
+    std::unique_ptr<AudioFormatWriter> writer;
+    writer.reset (format.createWriterFor (new FileOutputStream (outputAudioPath),
+                                          sampleRate,
+                                          buffer.getNumChannels(),
+                                          24,
+                                          {},
+                                          0));
+    if (writer != nullptr)
+        writer->writeFromAudioSampleBuffer (buffer, 0, buffer.getNumSamples());
+}
+
 
 void vectorToBuffer(std::vector<float> &inputL,
                     std::vector<float> &inputR,
@@ -105,10 +123,10 @@ void medianfilterSymmetric(std::vector<float>& input,
     for (int i=N - 1; i>=(N - wsize + 1); i--) {
         output.push_back(input[i]);
     }
-    medianFilter(&output[0], N, wsize);
+    medianFilter(&output[0], (int)output.size(), wsize);
     output = slice(output,
                    wsize + 1,
-                   N - wsize);
+                   (int)output.size() - wsize);
 }
 
 
@@ -117,7 +135,7 @@ void horizontalMedianFiltering(std::vector<std::vector<float>> &input,
                                int N) {
     output.clear();
     for (auto &row: input) {
-        std::vector<float> outputRow;
+        std::vector<float> outputRow(row.size(), 0.0f);
         medianfilterSymmetric(row,
                               outputRow,
                               N);
@@ -127,10 +145,10 @@ void horizontalMedianFiltering(std::vector<std::vector<float>> &input,
 
 void transpose(std::vector<std::vector<float> > &b)
 {
-    std::vector<std::vector<float> > trans_vec(b[0].size(), std::vector<float>());
+    std::vector<std::vector<float> > trans_vec(b[0].size(), std::vector<float>(b.size()));
     for (int i = 0; i < b.size(); i++)
         for (int j = 0; j < b[i].size(); j++)
-            trans_vec[j].push_back(b[i][j]);
+            trans_vec[j][i] = b[i][j];
     b = trans_vec;
 }
 
@@ -140,7 +158,7 @@ void verticalMedianFiltering(std::vector<std::vector<float>> input,
     transpose(input);
     output.clear();
     for (auto &row: input) {
-        std::vector<float> outputRow;
+        std::vector<float> outputRow(row.size(), 0.0f);
         medianfilterSymmetric(row,
                               outputRow,
                               N);
@@ -149,11 +167,12 @@ void verticalMedianFiltering(std::vector<std::vector<float>> input,
     transpose(output);
 }
 
-void my_soft_mask(std::vector<std::vector<float>> &X,
-                  std::vector<std::vector<float>> &X_ref,
-                  std::vector<std::vector<float>> &mask,
-                  float power=1.0f,
-                  bool split_zeros=false) {
+void soft_mask(std::vector<std::vector<float>> &X,
+               std::vector<std::vector<float>> &X_ref,
+               float margin_factor,
+               std::vector<std::vector<float>> &mask,
+               float power=1.0f,
+               bool split_zeros=false) {
     mask.resize(X.size());
     for (auto &row: mask)
         row.resize(X[0].size());
@@ -161,7 +180,7 @@ void my_soft_mask(std::vector<std::vector<float>> &X,
     for (int i=0; i<X.size(); i++) {
         for (int j=0; j<X[i].size(); j++) {
             x = X[i][j];
-            xref = X_ref[i][j];
+            xref = X_ref[i][j] * margin_factor;
             z = std::max(x, xref);
             if (z < 1e-8) {
                 if (split_zeros)
@@ -174,6 +193,30 @@ void my_soft_mask(std::vector<std::vector<float>> &X,
                 m = m / (m + rm);
             }
             mask[i][j] = m;
+        }
+    }
+}
+
+
+void hpss(std::vector<std::vector<float>> &X,
+          int win_harm,
+          int win_perc,
+          float power,
+          float margin_harm,
+          float margin_perc,
+          std::vector<std::vector<float>> &harm,
+          std::vector<std::vector<float>> &perc) {
+    horizontalMedianFiltering(X, harm, win_harm);
+    verticalMedianFiltering(X, perc, win_perc);
+    bool split_zeros = (margin_harm == 1.0f) && (margin_perc == 1.0f);
+    std::vector<std::vector<float>> mask_harm(X);
+    std::vector<std::vector<float>> mask_perc(X);
+    soft_mask(harm, perc, margin_harm, mask_harm, power, split_zeros);
+    soft_mask(perc, harm, margin_perc, mask_perc, power, split_zeros);
+    for (int i=0; i<X.size(); i++) {
+        for (int j=0; j<X[i].size(); j++) {
+            harm[i][j] *= mask_harm[i][j];
+            perc[i][j] *= mask_perc[i][j];
         }
     }
 }

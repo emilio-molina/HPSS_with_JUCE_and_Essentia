@@ -80,11 +80,12 @@ void EssentiaAudioProcessor::process() {
         _fftAlgorithm->compute();
         _stft.push_back(_fft);
     }
+    computeHPSS(1.0f, 0.0f, 0.0f);
     computeISTFT(_stft);
 }
 
 
-void EssentiaAudioProcessor::computeISTFT(std::vector<std::vector<std::complex<float>>> stft) {
+void EssentiaAudioProcessor::computeISTFT(std::vector<std::vector<std::complex<float>>> &stft) {
     _synthesizedSamples.clear();
     _synthesizedFrameOLA.clear();
     _overlapAddAlgorithm->reset();
@@ -104,4 +105,26 @@ void EssentiaAudioProcessor::computeISTFT(std::vector<std::vector<std::complex<f
 
 void EssentiaAudioProcessor::getSynthesizedSamples(std::vector<float> &synthesizedSamples) {
     synthesizedSamples = _synthesizedSamples;
+}
+
+void EssentiaAudioProcessor::computeHPSS(float gain_harm, float gain_perc, float gain_residual) {
+    std::vector<std::vector<float>> stftMag(_stft.size(), std::vector<float>(_stft[0].size()));
+    for (int i=0; i<_stft.size(); i++) {
+        for (int j=0; j<_stft[i].size(); j++) {
+            stftMag[i][j] = std::abs(_stft[i][j]);
+        }
+    }
+    std::vector<std::vector<float>> stftHarmMag(_stft.size(), std::vector<float>(_stft[0].size()));
+    std::vector<std::vector<float>> stftPercMag(_stft.size(), std::vector<float>(_stft[0].size()));
+    hpss(stftMag, 131, 51, 2.5f, 1.0f, 1.0f, stftHarmMag, stftPercMag);
+    float phase, mag;
+    for (int i=0; i<_stft.size(); i++) {
+        for (int j=0; j<_stft[i].size(); j++) {
+            phase = std::arg(_stft[i][j]);
+            mag =  ((gain_harm * stftHarmMag[i][j]) +
+                    (gain_perc * stftPercMag[i][j]) +
+                    (gain_residual * (stftMag[i][j] - stftHarmMag[i][j] - stftPercMag[i][j])));
+            _stft[i][j] = std::polar(mag, phase);
+        }
+    }
 }

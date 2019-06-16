@@ -142,6 +142,7 @@ void MainComponent::selectRow(int rowId) {
                       _formatManager);
     _position = 0;
     _processCurrentBuffer(_currentAudioSampleBuffer);
+    writeToAudioFile(_currentAudioSampleBuffer, 44100, "/Users/emiliomolina/Desktop/test.wav");
     _playing = true;
     _mutex.unlock();
 }
