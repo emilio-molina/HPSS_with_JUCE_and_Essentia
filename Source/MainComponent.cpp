@@ -7,12 +7,13 @@
  */
 
 #include "MainComponent.h"
-
+#include <string>
 //==============================================================================
 MainComponent::MainComponent() : _playing(false)
 {
     // Make sure you set the size of the component after
     // you add any child components.
+    _rowId = 0;
     setSize (800, 600);
     setAudioChannels(0, 2);
     addAndMakeVisible(_filesBrowser);
@@ -107,16 +108,54 @@ MainComponent::MainComponent() : _playing(false)
     _hopSizeAux.setJustificationType (Justification::right);
     addAndMakeVisible(_playComponents);
     _playComponents.setButtonText("Compute and play mix");
+    _playComponents.onClick = [this] { _playComponentsClicked(); };
     addAndMakeVisible(_exportComponents);
     _exportComponents.setButtonText("Export mix");
+    _exportComponents.onClick = [this] { _exportComponentsClicked(); };
     addAndMakeVisible(_playOriginal);
+    _playOriginal.onClick = [this] { _playOriginalClicked(); };
     _playOriginal.setButtonText("Play original");
     std::function<void(int)> f = [=](int rowId) {
-        this->selectRow(rowId);
+        this->_rowId = rowId;
     };
     _filesBrowser.setSelectedRowsChangedCallback(f);
     _selectFolder();
     _position = 0;
+}
+
+void MainComponent::_playComponentsClicked() {
+    juce::Logger::writeToLog(_files[_rowId].getFullPathName());
+    _mutex.lock();
+    readFromAudioFile(_files[_rowId],
+                      _currentAudioSampleBuffer,
+                      _formatManager);
+    _position = 0;
+    int fftSize = (int)(std::stof(_fftSize.getText().toStdString()));
+    int hopSize = (int)(std::stof(_hopSize.getText().toStdString()));
+    float gainHarm = _harmSlider.getValue();
+    float gainPerc = _percSlider.getValue();
+    float gainResi = _resiSlider.getValue();
+    int winHarm = (int)(std::stof(_winharm.getText().toStdString()));
+    int winPerc = (int)(std::stof(_winperc.getText().toStdString()));
+    _processCurrentBuffer(_currentAudioSampleBuffer, gainHarm, gainPerc, gainResi);
+    _playing = true;
+    _mutex.unlock();
+}
+
+
+void MainComponent::_playOriginalClicked() {
+    juce::Logger::writeToLog(_files[_rowId].getFullPathName());
+    _mutex.lock();
+    readFromAudioFile(_files[_rowId],
+                      _currentAudioSampleBuffer,
+                      _formatManager);
+    _position = 0;
+    _playing = true;
+    _mutex.unlock();
+}
+
+
+void MainComponent::_exportComponentsClicked() {
 }
 
 MainComponent::~MainComponent()
@@ -251,13 +290,14 @@ void MainComponent::_selectFolder() {
     }
 }
 
-void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
+void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer,
+                                          float gain_harm, float gain_perc, float gain_resi) {
     std::vector<std::vector<float>> signal_L_and_R;
     EssentiaAudioProcessor _essentiaAudioProcessor;
     for (int channel=0; channel<2; channel++) {
         _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
                                                           channel);
-        _essentiaAudioProcessor.process(1.0f, 0.0f, 0.0f);
+        _essentiaAudioProcessor.process(gain_harm, gain_perc, gain_resi);
         std::vector<float> signalChannel;
         _essentiaAudioProcessor.getSynthesizedSamples(signalChannel);
         signal_L_and_R.push_back(signalChannel);
@@ -265,17 +305,4 @@ void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
     vectorToBuffer(signal_L_and_R[0],
                    signal_L_and_R[1],
                    outBuffer);
-}
-
-void MainComponent::selectRow(int rowId) {
-    juce::Logger::writeToLog(_files[rowId].getFullPathName());
-    _mutex.lock();
-    readFromAudioFile(_files[rowId],
-                      _currentAudioSampleBuffer,
-                      _formatManager);
-    _position = 0;
-    _processCurrentBuffer(_currentAudioSampleBuffer);
-    writeToAudioFile(_currentAudioSampleBuffer, 44100, "/Users/emiliomolina/Desktop/test.wav");
-    _playing = true;
-    _mutex.unlock();
 }

@@ -36,12 +36,11 @@ public:
     //==============================================================================
     void paint (Graphics& g) override;
     void resized() override;
-    
-    void selectRow(int rowId);
 private:
     std::mutex _mutex;
     bool _playing;
     int _position;
+    int _rowId;
     SimpleList _filesBrowser;
     Array<File> _files;
     AudioFormatManager _formatManager;
@@ -71,7 +70,10 @@ private:
     TextButton _exportComponents;
     TextButton _playOriginal;
     void _selectFolder();
-    void _processCurrentBuffer(AudioSampleBuffer &outBuffer);
+    void _processCurrentBuffer(AudioSampleBuffer &outBuffer, float gain_harm, float gain_perc, float gain_resi);
+    void _playComponentsClicked();
+    void _playOriginalClicked();
+    void _exportComponentsClicked();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
 
