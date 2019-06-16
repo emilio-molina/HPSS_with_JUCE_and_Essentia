@@ -16,6 +16,101 @@ MainComponent::MainComponent() : _playing(false)
     setSize (800, 600);
     setAudioChannels(0, 2);
     addAndMakeVisible(_filesBrowser);
+    addAndMakeVisible(_log);
+    _log.setText("File duration: 0.0s \nElapsed time: 0.0s", dontSendNotification);
+    _log.setFont (Font (16.0f, Font::bold));
+    _log.setJustificationType (Justification::left);
+
+    addAndMakeVisible(_harmSlider);
+    _harmSlider.setRange(0.0, 1.0, 0.01);
+    _harmSlider.setValue(1.0);
+    addAndMakeVisible(_harmSliderAux);
+    _harmSliderAux.setText("Harmonic volume", dontSendNotification);
+    _harmSliderAux.setFont (Font (16.0f, Font::bold));
+    _harmSliderAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_percSlider);
+    _percSlider.setRange(0.0, 1.0, 0.01);
+    _percSlider.setValue(1.0);
+    addAndMakeVisible(_percSliderAux);
+    _percSliderAux.setText("Percussive volume", dontSendNotification);
+    _percSliderAux.setFont (Font (16.0f, Font::bold));
+    _percSliderAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_resiSlider);
+    _resiSlider.setRange(0.0, 1.0, 0.01);
+    _resiSlider.setValue(1.0);
+    addAndMakeVisible(_resiSliderAux);
+    _resiSliderAux.setText("Residual volume", dontSendNotification);
+    _resiSliderAux.setFont (Font (16.0f, Font::bold));
+    _resiSliderAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_winharm);
+    _winharm.setEditable(true);
+    _winharm.setText("131", dontSendNotification);
+    _winharm.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_winharmAux);
+    _winharmAux.setText("Harmonic filter size", dontSendNotification);
+    _winharmAux.setFont (Font (16.0f, Font::bold));
+    _winharmAux.attachToComponent(&_winharm, true);
+    _winharmAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_winperc);
+    _winperc.setEditable(true);
+    _winperc.setText("51", dontSendNotification);
+    _winperc.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_winpercAux);
+    _winpercAux.setText("Percussive filter size", dontSendNotification);
+    _winpercAux.attachToComponent(&_winperc, true);
+    _winpercAux.setFont (Font (16.0f, Font::bold));
+    _winpercAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_power);
+    _power.setEditable(true);
+    _power.setText("2.5", dontSendNotification);
+    _power.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_powerAux);
+    _powerAux.setText("Mask power", dontSendNotification);
+    _powerAux.attachToComponent(&_power, true);
+    _powerAux.setFont (Font (16.0f, Font::bold));
+    _powerAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_marginHarm);
+    _marginHarm.setEditable(true);
+    _marginHarm.setText("1.0", dontSendNotification);
+    _marginHarm.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_marginHarmAux);
+    _marginHarmAux.attachToComponent(&_marginHarm, true);
+    _marginHarmAux.setText("Mask harm. size", dontSendNotification);
+    _marginHarmAux.setFont (Font (16.0f, Font::bold));
+    _marginHarmAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_marginPerc);
+    _marginPerc.setEditable(true);
+    _marginPerc.setText("1.0", dontSendNotification);
+    _marginPerc.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_marginPercAux);
+    _marginPercAux.attachToComponent(&_marginPerc, true);
+    _marginPercAux.setText("Mask harm. size", dontSendNotification);
+    _marginPercAux.setFont (Font (16.0f, Font::bold));
+    _marginPercAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_fftSize);
+    _fftSize.setEditable(true);
+    _fftSize.setText("2048", dontSendNotification);
+    _fftSize.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_fftSizeAux);
+    _fftSizeAux.attachToComponent(&_fftSize, true);
+    _fftSizeAux.setText("FFT size", dontSendNotification);
+    _fftSizeAux.setFont (Font (16.0f, Font::bold));
+    _fftSizeAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_hopSize);
+    _hopSize.setEditable(true);
+    _hopSize.setText("512", dontSendNotification);
+    _hopSize.setColour (Label::backgroundColourId, Colours::darkblue);
+    addAndMakeVisible(_hopSizeAux);
+    _hopSizeAux.attachToComponent(&_hopSize, true);
+    _hopSizeAux.setText("Hop size", dontSendNotification);
+    _hopSizeAux.setFont (Font (16.0f, Font::bold));
+    _hopSizeAux.setJustificationType (Justification::right);
+    addAndMakeVisible(_playComponents);
+    _playComponents.setButtonText("Compute and play mix");
+    addAndMakeVisible(_exportComponents);
+    _exportComponents.setButtonText("Export mix");
+    addAndMakeVisible(_playOriginal);
+    _playOriginal.setButtonText("Play original");
     std::function<void(int)> f = [=](int rowId) {
         this->selectRow(rowId);
     };
@@ -89,10 +184,47 @@ void MainComponent::paint (Graphics& g)
 
 void MainComponent::resized()
 {
-    float percentage_x = (float)getWidth() / 100.0f;
-    float percentage_y = (float)getHeight() / 100.0f;
-    _filesBrowser.setBounds(percentage_x * 1, percentage_y * 1,
-                          percentage_x * 99, percentage_y * 15);
+    float p_x = (float)getWidth() / 100.0f;
+    float p_y = (float)getHeight() / 100.0f;
+    _filesBrowser.setBounds(p_x * 1, p_y * 1,
+                            p_x * 99, p_y * 15);
+    _harmSliderAux.setBounds(p_x * 5, p_y * 20,
+                             p_x * 15, p_y * 3);
+    _harmSlider.setBounds(p_x * 21, p_y * 20,
+                          p_x * 50, p_y * 3);
+    _percSliderAux.setBounds(p_x * 5, p_y * 25,
+                             p_x * 15, p_y * 3);
+    _percSlider.setBounds(p_x * 21, p_y * 25,
+                          p_x * 50, p_y * 3);
+    _resiSliderAux.setBounds(p_x * 5, p_y * 30,
+                             p_x * 15, p_y * 3);
+    _resiSlider.setBounds(p_x * 21, p_y * 30,
+                          p_x * 50, p_y * 3);
+    
+    _fftSize.setBounds(p_x * 26, p_y * 40,
+                       p_x * 20, p_y * 3);
+    _hopSize.setBounds(p_x * 26, p_y * 45,
+                       p_x * 20, p_y * 3);
+    _winharm.setBounds(p_x * 26, p_y * 55,
+                       p_x * 25, p_y * 3);
+    _winperc.setBounds(p_x * 26, p_y * 60,
+                       p_x * 25, p_y * 3);
+    _marginHarm.setBounds(p_x * 26, p_y * 70,
+                          p_x * 20, p_y * 3);
+    _marginPerc.setBounds(p_x * 26, p_y * 75,
+                          p_x * 20, p_y * 3);
+    _power.setBounds(p_x * 26, p_y * 80,
+                     p_x * 20, p_y * 3);
+
+    _log.setBounds(p_x * 75, p_y * 20,
+                   p_x * 20, p_y * 10);
+    
+    _playOriginal.setBounds(p_x * 75, p_y * 35,
+                              p_x * 20, p_y * 10);
+    _playComponents.setBounds(p_x * 75, p_y * 50,
+                              p_x * 20, p_y * 10);
+    _exportComponents.setBounds(p_x * 75, p_y * 65,
+                              p_x * 20, p_y * 10);
 }
 
 void MainComponent::_selectFolder() {
@@ -121,6 +253,7 @@ void MainComponent::_selectFolder() {
 
 void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
     std::vector<std::vector<float>> signal_L_and_R;
+    EssentiaAudioProcessor _essentiaAudioProcessor;
     for (int channel=0; channel<2; channel++) {
         _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
                                                           channel);
