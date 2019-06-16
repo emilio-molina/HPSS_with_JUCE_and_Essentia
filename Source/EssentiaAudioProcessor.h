@@ -35,7 +35,7 @@ public:
     ~EssentiaAudioProcessor();
     void readSignalFromInputBuffer(AudioSampleBuffer &inputBuffer,
                                    int channel);
-    void process();
+    void process(float gain_harm, float gain_perc, float gain_residual);
     void computeISTFT(std::vector<std::vector<std::complex<float>>> &stft);
     void computeHPSS(float gain_harm, float gain_perc, float gain_residual);
     void getSynthesizedSamples(std::vector<float> &output);

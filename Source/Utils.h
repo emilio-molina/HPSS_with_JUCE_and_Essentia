@@ -12,6 +12,9 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <vector>
 #include <memory.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 #include "Mediator.h"
 
 void readFromAudioFile(const File& inputAudioFile,
@@ -29,7 +32,7 @@ void medianfilterSymmetric(std::vector<float>& input,
                            std::vector<float>& output,
                            int wsize);
 
-void horizontalMedianFiltering(std::vector<std::vector<float>> &input,
+void horizontalMedianFiltering(std::vector<std::vector<float>> input,
                                std::vector<std::vector<float>> &output,
                                int N);
 
@@ -49,3 +52,6 @@ void hpss(std::vector<std::vector<float>> &X,
           float margin_perc,
           std::vector<std::vector<float>> &harm,
           std::vector<std::vector<float>> &perc);
+
+void exportMatrix(std::vector<std::vector<float>> &X,
+                  std::string out_path);

@@ -13,8 +13,8 @@
 
 EssentiaAudioProcessor::EssentiaAudioProcessor() {
     essentia::init();
-    _frameSize = 1024;
-    _hopSize = 256;
+    _frameSize = 2048;
+    _hopSize = 512;
 
     essentia::standard::AlgorithmFactory& factory = essentia::standard::AlgorithmFactory::instance();
     _frameCutterAlgorithm = factory.create("FrameCutter",
@@ -64,7 +64,7 @@ void EssentiaAudioProcessor::readSignalFromInputBuffer(AudioSampleBuffer &inputB
 }
 
 
-void EssentiaAudioProcessor::process() {
+void EssentiaAudioProcessor::process(float gain_harm, float gain_perc, float gain_residual) {
     _frameCutterAlgorithm->reset();
     _stft.clear();
     int num_frames = 0;
@@ -80,7 +80,7 @@ void EssentiaAudioProcessor::process() {
         _fftAlgorithm->compute();
         _stft.push_back(_fft);
     }
-    computeHPSS(1.0f, 0.0f, 0.0f);
+    computeHPSS(gain_harm, gain_perc, gain_residual);
     computeISTFT(_stft);
 }
 

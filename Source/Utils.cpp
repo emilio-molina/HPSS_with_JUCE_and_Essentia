@@ -130,19 +130,6 @@ void medianfilterSymmetric(std::vector<float>& input,
 }
 
 
-void horizontalMedianFiltering(std::vector<std::vector<float>> &input,
-                               std::vector<std::vector<float>> &output,
-                               int N) {
-    output.clear();
-    for (auto &row: input) {
-        std::vector<float> outputRow(row.size(), 0.0f);
-        medianfilterSymmetric(row,
-                              outputRow,
-                              N);
-        output.push_back(outputRow);
-    }
-}
-
 void transpose(std::vector<std::vector<float> > &b)
 {
     std::vector<std::vector<float> > trans_vec(b[0].size(), std::vector<float>(b.size()));
@@ -152,9 +139,10 @@ void transpose(std::vector<std::vector<float> > &b)
     b = trans_vec;
 }
 
-void verticalMedianFiltering(std::vector<std::vector<float>> input,
-                             std::vector<std::vector<float>> &output,
-                             int N) {
+
+void horizontalMedianFiltering(std::vector<std::vector<float>> input,
+                               std::vector<std::vector<float>> &output,
+                               int N) {
     transpose(input);
     output.clear();
     for (auto &row: input) {
@@ -166,6 +154,23 @@ void verticalMedianFiltering(std::vector<std::vector<float>> input,
     }
     transpose(output);
 }
+
+void verticalMedianFiltering(std::vector<std::vector<float>> input,
+                             std::vector<std::vector<float>> &output,
+                             int N) {
+    //transpose(input);
+    output.clear();
+    for (auto &row: input) {
+        std::vector<float> outputRow(row.size(), 0.0f);
+        medianfilterSymmetric(row,
+                              outputRow,
+                              N);
+        output.push_back(outputRow);
+    }
+    //transpose(output);
+}
+
+
 
 void soft_mask(std::vector<std::vector<float>> &X,
                std::vector<std::vector<float>> &X_ref,
@@ -219,4 +224,18 @@ void hpss(std::vector<std::vector<float>> &X,
             perc[i][j] *= mask_perc[i][j];
         }
     }
+}
+
+
+void exportMatrix(std::vector<std::vector<float>> &X,
+                  std::string out_path) {
+    std::ofstream f;
+    f.open(out_path);
+    int d = (int)X.size();
+    f.write(reinterpret_cast<char*>(&d), sizeof(int));
+    d = (int)X[0].size();
+    f.write(reinterpret_cast<char*>(&d), sizeof(int));
+    for (auto &row: X)
+        f.write(reinterpret_cast<char*>(&row[0]), sizeof(float) * (int)row.size());
+    f.close();
 }

@@ -124,7 +124,7 @@ void MainComponent::_processCurrentBuffer(AudioSampleBuffer &outBuffer) {
     for (int channel=0; channel<2; channel++) {
         _essentiaAudioProcessor.readSignalFromInputBuffer(_currentAudioSampleBuffer,
                                                           channel);
-        _essentiaAudioProcessor.process();
+        _essentiaAudioProcessor.process(1.0f, 0.0f, 0.0f);
         std::vector<float> signalChannel;
         _essentiaAudioProcessor.getSynthesizedSamples(signalChannel);
         signal_L_and_R.push_back(signalChannel);
